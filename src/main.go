@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
+
+	"encoding/json"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -68,15 +71,49 @@ func handleRequest(ctx context.Context) (string, error) {
 	return "Hello!", nil
 }
 
+type MessageBody struct {
+	Id string `json:"id"`
+}
+
 func handler(ctx context.Context, event events.SQSEvent) (events.SQSEventResponse, error) {
+	failures := []events.SQSBatchItemFailure{}
 	for _, record := range event.Records {
-		fmt.Println(record.Body)
-		fmt.Println(record.MessageId)
+		if failure := handleMessage(record); failure != nil {
+			failures = append(failures, *failure)
+		}
 	}
 	response := events.SQSEventResponse{
-		BatchItemFailures: []events.SQSBatchItemFailure{},
+		BatchItemFailures: failures,
 	}
 	return response, nil
+}
+
+func handleMessage(message events.SQSMessage) *events.SQSBatchItemFailure {
+	var body MessageBody
+
+	// turn the message body into a byte array and parse it
+	err := json.Unmarshal([]byte(message.Body), &body)
+	if err != nil {
+		fmt.Println("Parsing message failed", err)
+		return &events.SQSBatchItemFailure{ItemIdentifier: message.MessageId}
+	}
+	if body.Id == "" {
+		fmt.Println("Id field missing or empty")
+		return &events.SQSBatchItemFailure{ItemIdentifier: message.MessageId}
+	}
+
+	resp, err := http.Get(fmt.Sprintf("https://jsonplaceholder.typicode.com/todos/%s", body.Id))
+	if err != nil {
+		fmt.Println("Request failed", err)
+		return &events.SQSBatchItemFailure{ItemIdentifier: message.MessageId}
+	}
+	if resp.StatusCode != 200 {
+		fmt.Println("Received non 200 status code", resp.StatusCode)
+		return &events.SQSBatchItemFailure{ItemIdentifier: message.MessageId}
+	}
+	fmt.Println(resp.StatusCode)
+
+	return nil
 }
 
 func main() {

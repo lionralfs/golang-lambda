@@ -17,7 +17,7 @@ docker run -d -v ~/.aws-lambda-rie:/aws-lambda -p 9000:8080 --entrypoint /aws-la
 ```
 
 ```sh
-curl "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{}'
+curl "http://localhost:9000/2015-03-31/functions/function/invocations" --data-binary "@test-input.json"
 ```
 
 # screw it, deploy

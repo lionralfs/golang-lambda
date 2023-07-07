@@ -59,6 +59,14 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: test-queue
+      RedrivePolicy:
+        maxReceiveCount: 2
+        deadLetterTargetArn: !GetAtt dlq.Arn
+
+  dlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: test-queue-dlq
 
   queuepolicy:
     Type: AWS::SQS::QueuePolicy

@@ -3,7 +3,7 @@
     {
       "messageId": "a323d894-ce63-4b85-ab4b-f285949ba847",
       "receiptHandle": "MessageReceiptHandle",
-      "body": "{\"test\":\"value\",\"data\":[1, 2]}",
+      "body": "{\"id\":\"1\"}",
       "attributes": {
         "ApproximateReceiveCount": "1",
         "SentTimestamp": "1523232000000",
@@ -19,7 +19,23 @@
     {
       "messageId": "1279daff-c6c9-4ee8-b026-01343e3e9a69",
       "receiptHandle": "MessageReceiptHandle",
-      "body": "{\"test\":\"other-value\",\"data\":[3, 4]}",
+      "body": "{\"id\":\"2\"}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "123456789012",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "7b270e59b47ff90a553787216d55d91d",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:MyQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "1279daff-c6c9-4ee8-b026-01343e3e9a69",
+      "receiptHandle": "MessageReceiptHandle",
+      "body": "{\"id\":\"9999999999\"}",
       "attributes": {
         "ApproximateReceiveCount": "1",
         "SentTimestamp": "1523232000000",

@@ -16,6 +16,7 @@ aws ecr describe-repositories --repository-names ${REPO_NAME} || aws ecr create-
 docker build -t docker-image:test .
 
 # tag the image
+# TODO: using the 'latest' tag prevents cloudformation from updating the lambda: "No changes to deploy."
 docker tag docker-image:test $AWS_ACCOUNT_ID.dkr.ecr.eu-central-1.amazonaws.com/$REPO_NAME:latest
 
 # push image to ecr

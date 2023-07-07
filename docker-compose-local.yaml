@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  mongodb:
+    image: mongo:6.0.7
+    ports:
+      - '27017:27017'
+    volumes:
+      - dbdata:/data/db
+    container_name: mongo-local
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongouser
+      - MONGO_INITDB_ROOT_PASSWORD=mongopass
+    
+volumes:
+  dbdata:

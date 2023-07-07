@@ -4,7 +4,8 @@ WORKDIR /golang-lambda
 COPY go.mod go.sum ./
 # build
 COPY src/*.go .
-RUN go build -o main main.go
+# ※\(^o^)/※ ARM!
+RUN GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o main main.go
 # copy artifacts to a clean image
 FROM public.ecr.aws/lambda/provided:al2
 COPY --from=build /golang-lambda/main /main

@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Golang Lambda + SQS
+
+Parameters:
+  lambdaFunctionName:
+    Type: String
+    AllowedPattern: '[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+'
+    Default: golang-lambda
+  lambdaImageUri:
+    Type: String
+
+Resources:
+  lambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      PackageType: Image
+      Code:
+        ImageUri: !Ref lambdaImageUri
+      MemorySize: 256
+      Timeout: 5
+      Architectures:
+        - arm64
+      FunctionName: !Ref lambdaFunctionName
+      Role: !GetAtt lambdaIAMRole.Arn
+
+  lambdaIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: lambdaRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      Policies:
+        - PolicyName: allowToWriteLogs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${lambdaFunctionName}:*
+
+  lambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${lambdaFunctionName}
+      RetentionInDays: 7
+
+  queue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: test-queue
+
+  queuepolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Id: LambdaQueuePolicy
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:role/lambdaRole
+            Action:
+              - sqs:*
+            Resource: !GetAtt queue.Arn
+      Queues:
+        - !Ref queue
+
+  eventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      Enabled: true
+      EventSourceArn: !GetAtt queue.Arn
+      FunctionName: !Ref lambdaFunctionName
+      BatchSize: 100
+      MaximumBatchingWindowInSeconds: 10
+      FunctionResponseTypes:
+        - ReportBatchItemFailures
+
+Outputs:
+  lambdaArn:
+    Value: !GetAtt lambdaFunction.Arn

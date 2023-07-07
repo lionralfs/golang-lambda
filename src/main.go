@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -66,14 +68,18 @@ func handleRequest(ctx context.Context) (string, error) {
 	return "Hello!", nil
 }
 
-// func handler(ctx context.Context, event events.SQSEvent) (events.SQSEventResponse, error) {
-// 	response := events.SQSEventResponse{
-// 		BatchItemFailures: []events.SQSBatchItemFailure{},
-// 	}
-// 	return response, nil
-// }
+func handler(ctx context.Context, event events.SQSEvent) (events.SQSEventResponse, error) {
+	for _, record := range event.Records {
+		fmt.Println(record.Body)
+		fmt.Println(record.MessageId)
+	}
+	response := events.SQSEventResponse{
+		BatchItemFailures: []events.SQSBatchItemFailure{},
+	}
+	return response, nil
+}
 
 func main() {
 	// lambda.Start(HandleRequest)
-	handleRequest(context.TODO())
+	lambda.Start(handler)
 }

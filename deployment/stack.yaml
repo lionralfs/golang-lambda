@@ -95,6 +95,20 @@ Resources:
       FunctionResponseTypes:
         - ReportBatchItemFailures
 
+  metricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern: '[level=METRIC, metric_name=response_code, metric_value, status_code]'
+      LogGroupName: !Sub /aws/lambda/${lambdaFunctionName}
+      MetricTransformations:
+        - MetricNamespace: !Ref lambdaFunctionName
+          MetricName: response_codes
+          MetricValue: $metric_value
+          Unit: Count
+          Dimensions:
+            - Key: status
+              Value: $status_code
+
 Outputs:
   lambdaArn:
     Value: !GetAtt lambdaFunction.Arn

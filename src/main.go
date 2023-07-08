@@ -107,11 +107,11 @@ func handleMessage(message events.SQSMessage) *events.SQSBatchItemFailure {
 		fmt.Println("Request failed", err)
 		return &events.SQSBatchItemFailure{ItemIdentifier: message.MessageId}
 	}
+	fmt.Printf("METRIC response_code 1 %d\n", resp.StatusCode)
 	if resp.StatusCode != 200 {
 		fmt.Println("Received non 200 status code", resp.StatusCode)
 		return &events.SQSBatchItemFailure{ItemIdentifier: message.MessageId}
 	}
-	fmt.Println(resp.StatusCode)
 
 	return nil
 }

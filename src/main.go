@@ -117,6 +117,5 @@ func handleMessage(message events.SQSMessage) *events.SQSBatchItemFailure {
 }
 
 func main() {
-	// lambda.Start(HandleRequest)
 	lambda.Start(handler)
 }

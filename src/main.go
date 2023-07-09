@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"encoding/json"
@@ -76,11 +77,26 @@ type MessageBody struct {
 }
 
 func handler(ctx context.Context, event events.SQSEvent) (events.SQSEventResponse, error) {
-	failures := []events.SQSBatchItemFailure{}
+	failuresChannel := make(chan *events.SQSBatchItemFailure)
+	var wg sync.WaitGroup
 	for _, record := range event.Records {
-		if failure := handleMessage(record); failure != nil {
-			failures = append(failures, *failure)
-		}
+		wg.Add(1)
+		go func(record *events.SQSMessage) {
+			defer wg.Done()
+			if failure := handleMessage(record); failure != nil {
+				failuresChannel <- failure
+			}
+		}(&record)
+	}
+
+	go func() {
+		wg.Wait()
+		close(failuresChannel)
+	}()
+
+	failures := []events.SQSBatchItemFailure{}
+	for failure := range failuresChannel { // this loop terminates when the channel is closed
+		failures = append(failures, *failure)
 	}
 	response := events.SQSEventResponse{
 		BatchItemFailures: failures,
@@ -88,7 +104,7 @@ func handler(ctx context.Context, event events.SQSEvent) (events.SQSEventRespons
 	return response, nil
 }
 
-func handleMessage(message events.SQSMessage) *events.SQSBatchItemFailure {
+func handleMessage(message *events.SQSMessage) *events.SQSBatchItemFailure {
 	var body MessageBody
 
 	// turn the message body into a byte array and parse it

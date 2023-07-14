@@ -25,3 +25,9 @@ curl "http://localhost:9000/2015-03-31/functions/function/invocations" --data-bi
 ```sh
 ./deployment/deploy.sh <AWS-Account-ID>
 ```
+
+# invoke via SNS
+
+```sh
+aws sns publish --topic-arn arn:aws:sns:eu-central-1:<AWS_ACCOUNT_ID>:topic-for-golang-lambda --message '{"id":"1"}' --message-attributes '{"MyCustomAttribute" : { "DataType":"String", "StringValue":"some-value"}}' --no-cli-pager
+```

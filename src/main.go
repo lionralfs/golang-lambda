@@ -107,6 +107,10 @@ func handler(ctx context.Context, event events.SQSEvent) (events.SQSEventRespons
 func handleMessage(message *events.SQSMessage) *events.SQSBatchItemFailure {
 	var body MessageBody
 
+	for key, value := range message.MessageAttributes {
+		fmt.Println(key, *value.StringValue)
+	}
+
 	// turn the message body into a byte array and parse it
 	err := json.Unmarshal([]byte(message.Body), &body)
 	if err != nil {
